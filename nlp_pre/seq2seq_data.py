@@ -35,7 +35,8 @@ class seq2seqData(object):
             glove.6B.300d
         Remaining keyword arguments: Passed to the constructor of Vectors classes.
     """
-    def __init__(self, in_tokenize, out_tokenize, cols, batch_size, device, data_path='.', in_vectors=None, out_vectors=None):
+    def __init__(self, in_tokenize, out_tokenize, cols, batch_size, device, data_path='.',
+                 in_vectors=None, out_vectors=None):
         self.DEVICE = device
         self.BATCH_SIZE = batch_size
         self.in_tokenize = in_tokenize
@@ -112,7 +113,7 @@ class seq2seqData(object):
             print('create vocabulary')
             self.INPUT_TEXT.build_vocab(train, val, vectors=self.in_vectors)
             self.OUTPUT_TEXT.build_vocab(train, val, vectors=self.out_vectors)
-            if not (self.vectors is None):
+            if not ((self.in_vectors is None) and (self.in_vectors is None)):
                 self.INPUT_TEXT.vocab.vectors.unk_init = init.xavier_uniform
                 self.OUTPUT_TEXT.vocab.vectors.unk_init = init.xavier_uniform
 
@@ -124,6 +125,9 @@ class seq2seqData(object):
 
         # return self.INPUT_TEXT.vocab, self.OUTPUT_TEXT.vocab
         return
+    
+    def getVocab(self):
+        return self.INPUT_TEXT.vocab, self.OUTPUT_TEXT.vocab
 
     def generateIterator(self):
         # generate iterator
