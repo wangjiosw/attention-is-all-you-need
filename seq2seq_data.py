@@ -14,19 +14,35 @@ class seq2seqData(object):
         batch_size:     iterator's batch size
         device:         iterator's device torch.device('cpu') or torch.device('cuda')
         data_path:      tran.csv, val.csv and test.csv（format: input_text, output_text)'s dir path, default current dir
-        vectors:        pre-trained word embeddings
+        in_vectors:     pre-trained word embeddings
+        out_vectors:    pre-trained word embeddings
 
-    available vectors input:
-        - "glove.6B.100d"
-        ...
+        vectors: one of or a list containing instantiations of the
+            GloVe, CharNGram, or Vectors classes. Alternatively, one
+            of or a list of available pretrained vectors:
+            charngram.100d
+            fasttext.en.300d
+            fasttext.simple.300d
+            glove.42B.300d
+            glove.840B.300d
+            glove.twitter.27B.25d
+            glove.twitter.27B.50d
+            glove.twitter.27B.100d
+            glove.twitter.27B.200d
+            glove.6B.50d
+            glove.6B.100d
+            glove.6B.200d
+            glove.6B.300d
+        Remaining keyword arguments: Passed to the constructor of Vectors classes.
     """
-    def __init__(self, in_tokenize, out_tokenize, cols, batch_size, device, data_path='.', vectors=None):
+    def __init__(self, in_tokenize, out_tokenize, cols, batch_size, device, data_path='.', in_vectors=None, out_vectors=None):
         self.DEVICE = device
         self.BATCH_SIZE = batch_size
         self.in_tokenize = in_tokenize
         self.out_tokenize = out_tokenize
         self.date_path = data_path
-        self.vectors = vectors
+        self.in_vectors = in_vectors
+        self.out_vectors = out_vectors
         self.cols = cols
         # define Field
         self.INPUT_TEXT = Field(batch_first=True, tokenize=in_tokenize, lower=True)
@@ -46,6 +62,9 @@ class seq2seqData(object):
         and col[1] with OUTPUT_TEXT
         :return: train, val
         """
+        if not os.path.exists('data'):
+            os.mkdir('data')
+        
         data_fields = [(self.cols[0], self.INPUT_TEXT), (self.cols[1], self.OUTPUT_TEXT)]
 
         if os.path.exists(self.train_example_path) and os.path.exists(self.val_example_path) \
@@ -91,8 +110,8 @@ class seq2seqData(object):
             # test dataset may exist word out of vocabulary if build_vocab operation no include test
             # but more true
             print('create vocabulary')
-            self.INPUT_TEXT.build_vocab(train, val, vectors=self.vectors)
-            self.OUTPUT_TEXT.build_vocab(train, val, vectors=self.vectors)
+            self.INPUT_TEXT.build_vocab(train, val, vectors=self.in_vectors)
+            self.OUTPUT_TEXT.build_vocab(train, val, vectors=self.out_vectors)
             if not (self.vectors is None):
                 self.INPUT_TEXT.vocab.vectors.unk_init = init.xavier_uniform
                 self.OUTPUT_TEXT.vocab.vectors.unk_init = init.xavier_uniform
